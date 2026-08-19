@@ -9,7 +9,7 @@ st.title("🚗 Vehicle Maintenance Dashboard")
 @st.cache_data(ttl=60) # Caches data for 60 seconds for quick refreshes
 def load_data(sheet_url):
     # Read the data from the Google Sheets CSV link, skipping the first 2 blank header rows
-    df = pd.read_csv(sheet_url, skiprows=2)
+    df = pd.read_csv(sheet_url)
     
     # Clean up empty rows where there is no Plate No.
     df = df.dropna(subset=['Plate No.']) 

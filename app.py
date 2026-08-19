@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # --- Page Configuration ---
-st.set_page_config(page_title="Vehicle Maintenance Dashboard", layout="wide")
+st.set_page_config(page_title="Vehicle Maintenance Dashboard 2026 ", layout="wide")
 st.title("🚗 Vehicle Maintenance Dashboard")
 
 # --- Data Loading & Cleaning ---

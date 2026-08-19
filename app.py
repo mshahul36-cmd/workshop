@@ -3,7 +3,7 @@ import pandas as pd
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Vehicle Maintenance Dashboard", layout="wide")
-st.title("🚗 Vehicle Maintenance Dashboard")
+st.title("🚗 Vehicle Maintenance Dashboard 2026")
 
 # --- Data Loading & Cleaning ---
 @st.cache_data(ttl=60) # Caches data for 60 seconds for quick refreshes

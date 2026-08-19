@@ -3,13 +3,12 @@ import pandas as pd
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Vehicle Maintenance Dashboard", layout="wide")
-st.title("🚗 Vehicle Maintenance Dashboard 2026")
+st.title("🚗 Vehicle Maintenance Dashboard")
 
 # --- Data Loading & Cleaning ---
 @st.cache_data(ttl=60) # Caches data for 60 seconds for quick refreshes
 def load_data(sheet_url):
     # Read the data from the Google Sheets CSV link
-    # NOTE: skiprows=2 has been removed because headers are now on row 1
     df = pd.read_csv(sheet_url)
     
     # Clean up empty rows where there is no Plate No.
@@ -51,13 +50,6 @@ if 'Department' in df.columns:
 else:
     selected_dept = "All"
 
-# Payment Status Filter
-if 'Payment status' in df.columns:
-    status_list = df['Payment status'].dropna().unique().tolist()
-    selected_status = st.sidebar.selectbox("Payment Status", ["All"] + status_list)
-else:
-    selected_status = "All"
-
 # --- Apply Filters ---
 filtered_df = df.copy()
 
@@ -67,34 +59,28 @@ if selected_vehicle != "All":
 if selected_dept != "All" and 'Department' in df.columns:
     filtered_df = filtered_df[filtered_df['Department'] == selected_dept]
 
-if selected_status != "All" and 'Payment status' in df.columns:
-    filtered_df = filtered_df[filtered_df['Payment status'] == selected_status]
-
 # --- Dashboard Metrics ---
 st.markdown("### 📊 Cost Summary")
-col1, col2, col3, col4 = st.columns(4)
+# Reduced to 2 columns since Paid/Unpaid are removed
+col1, col2 = st.columns(2)
 
 if 'Total Cost with VAT' in filtered_df.columns:
     total_spend = filtered_df['Total Cost with VAT'].sum()
-    paid_amount = filtered_df[filtered_df['Payment status'] == 'PAID']['Total Cost with VAT'].sum() if 'Payment status' in filtered_df.columns else 0
-    unpaid_amount = filtered_df[filtered_df['Payment status'] == 'UNPAID']['Total Cost with VAT'].sum() if 'Payment status' in filtered_df.columns else 0
 else:
-    total_spend, paid_amount, unpaid_amount = 0, 0, 0
+    total_spend = 0
 
 total_vehicles = filtered_df['Plate No.'].nunique()
 
 # Formatting numbers with commas and 2 decimal places
 col1.metric("Total Spend (w/ VAT)", f"{total_spend:,.2f}")
-col2.metric("Total PAID", f"{paid_amount:,.2f}")
-col3.metric("Total UNPAID", f"{unpaid_amount:,.2f}")
-col4.metric("Vehicles Maintained", total_vehicles)
+col2.metric("Vehicles Maintained", total_vehicles)
 
 # --- Detailed Tables ---
 st.markdown("---")
 st.markdown("### 🚘 Vehicle List & Maintenance Records")
 
-# Columns to display if they exist
-display_cols = [col for col in ['Date', 'Invoice No.', 'Plate No.', 'Car Model', 'Description', 'Department', 'Total Cost with VAT', 'Payment status'] if col in filtered_df.columns]
+# Columns to display if they exist (Payment status removed from view)
+display_cols = [col for col in ['Date', 'Invoice No.', 'Plate No.', 'Car Model', 'Description', 'Department', 'Total Cost with VAT'] if col in filtered_df.columns]
 
 st.dataframe(
     filtered_df[display_cols], 

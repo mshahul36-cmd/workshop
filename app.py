@@ -1,30 +1,31 @@
 import streamlit as st
 import pandas as pd
 
-# Set page layout
+# --- Page Configuration ---
 st.set_page_config(page_title="Vehicle Maintenance Dashboard", layout="wide")
 st.title("🚗 Vehicle Maintenance Dashboard")
 
-# Function to load data from Google Sheets
-@st.cache_data(ttl=60) # Caches data for 60 seconds so it updates quickly
+# --- Data Loading & Cleaning ---
+@st.cache_data(ttl=60) # Caches data for 60 seconds for quick refreshes
 def load_data(sheet_url):
-    # Read the data from the Google Sheets CSV link
-    # Skipping the first 2 rows to match the format of your uploaded Excel file
+    # Read the data from the Google Sheets CSV link, skipping the first 2 blank header rows
     df = pd.read_csv(sheet_url, skiprows=2)
     
-    # Clean up empty rows
+    # Clean up empty rows where there is no Plate No.
     df = df.dropna(subset=['Plate No.']) 
+    
+    # --- Data Type Fix ---
+    # Convert 'Total Cost with VAT' from text to a number for calculations
+    df['Total Cost with VAT'] = df['Total Cost with VAT'].astype(str).str.replace(',', '')
+    df['Total Cost with VAT'] = pd.to_numeric(df['Total Cost with VAT'], errors='coerce').fillna(0)
+    
     return df
 
-# --- YOUR GOOGLE SHEETS LINK GOES HERE ---
+# --- GOOGLE SHEETS LINK ---
 # Replace this placeholder with your actual published CSV link from Google Sheets
 GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmIFmk-UKpfLELfVtJn42quNxCQIkUS3YIB9NB1tTbf_6CroRzUibQeJ1twQOA1Q/pub?gid=575821024&single=true&output=csv" 
 
 try:
-    # If you want to test locally with your Excel file first, uncomment the line below:
-    # df = pd.read_excel("Technical Pioneers for Car Maintenance2025 -2026.xlsx", sheet_name='Sheet2', skiprows=2)
-    
-    # Loads live data from Google Sheets
     df = load_data(GOOGLE_SHEET_CSV_URL)
 except Exception as e:
     st.error(f"Error loading data. Please check your Google Sheets link. Details: {e}")
@@ -66,6 +67,7 @@ paid_amount = filtered_df[filtered_df['Payment status'] == 'PAID']['Total Cost w
 unpaid_amount = filtered_df[filtered_df['Payment status'] == 'UNPAID']['Total Cost with VAT'].sum()
 total_vehicles = filtered_df['Plate No.'].nunique()
 
+# Formatting numbers with commas and 2 decimal places
 col1.metric("Total Spend (w/ VAT)", f"{total_spend:,.2f}")
 col2.metric("Total PAID", f"{paid_amount:,.2f}")
 col3.metric("Total UNPAID", f"{unpaid_amount:,.2f}")
